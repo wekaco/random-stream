@@ -1,0 +1,110 @@
+<ptrack>
+  <article
+    class={ `${state.hide}` }>
+      <figure
+        id={ state.uri }
+        style={ `background-image: url('${ props.input.cover }')` }>
+      </figure>
+      <h2>{ props.input.title }</h2>
+      <h3>{ props.input.username }</h3>
+      <ul>
+        <li each={ tag in props.input.tags}>{tag}</li>
+      </ul>
+  </article>
+  <style>
+    :host {
+        --figure-height: 20vh;
+        --figure-background-size: 80%;
+        --host-height: 50vh; 
+    }
+    /* For phone devices */
+    @media (min-width: 360px) {
+      :host {
+        --figure-height: 60vh;
+        --figure-background-size: 90%;
+        --host-height: 100vh; 
+      }
+    }
+    /* For tablet devices */
+    @media (min-width: 720px) {
+      :host {
+        --figure-width: 40%;
+        --figure-background-size: 60%;
+        --figure-height: 80vh;
+      }
+      figure {
+        float: left;
+        width: var(--figure-width);
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :host {
+        --figure-background-size: 20%;
+        --figure-height: 40vh;
+        padding-top: 20vh;
+        --host-height: 100vh; 
+      
+      }
+      figure {
+        float: none;
+        width: auto;
+      }
+    }
+    :host article {
+      display: block;
+      height: var(--host-height);
+    }
+    figure {
+      display: flex;
+      height: var(--figure-height);
+      background-attachment: fixed;
+      background-position: top;
+      /** background-repeat: no-repeat; **/
+      background-size: var(--figure-background-size);
+    }
+    article  {
+    }
+    article h2 {
+      margin-top: 0;
+    }
+    article.hide {
+      display: none;
+    }
+  </style>
+  <script>
+    const noop = ()=>{};
+  
+    const SC_STREAM = 'stream_ready';
+    export default function PTrack() {
+      return {
+        state: {
+          uri: null, 
+          hide: 'hide',
+        },
+        onBeforeMount(props, state) {
+          state.uri = props.input.uri;
+
+          const onStreamReady = props.onStreamReady || noop;
+          this.root.addEventListener(SC_STREAM, onStreamReady);
+
+          SC.stream(state.uri)
+            .then( player => {
+              const detail = { uri: state.uri, player };
+              this.root
+                .dispatchEvent(new CustomEvent(SC_STREAM, { detail }));
+
+              this.update({ hide: '' });
+            })
+            .catch( err => {
+              const detail = { uri: state.uri, err };
+              this.root
+                .dispatchEvent(new CustomEvent(SC_STREAM, { detail }));
+
+              this.unmount(); 
+            });
+        }
+      };
+    };
+  </script>
+</ptrack>

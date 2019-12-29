@@ -1,0 +1,128 @@
+<app>
+  <section>
+    <ptrack
+      each={ input in Array.from(state.articles.values()) }
+      input={ input }
+      onStreamReady={ onStreamReady } ></ptrack> 
+  </section>
+  <footer>
+      <button
+        name="play"
+        onclick={ play }
+        disabled={ state.disabled }>Play
+      </button>
+      <button
+        name="pause"
+        onclick={ pause }>Stop
+      </button>
+  </footer>
+  <style>
+    :host {
+      --section-width: 100%;
+       overflow: hidden;
+       height: 100vh;
+    }
+    @media (min-width: 360px) {
+      :host {
+        --section-width: 100%;
+      }
+    }
+    /* For tablet devices */
+    @media (min-width: 720px) {
+      :host {
+      }
+    }
+
+    @media (min-width: 1024px) {
+      :host {
+        --section-width: 80%;
+      }
+      section {
+        margin: auto;
+      }
+    }
+
+    section {
+      width: var(--section-width);
+    }
+    footer {
+      position: fixed;
+      bottom: 0;
+    }
+  </style>
+  <script>
+    import Nanobar from 'nanobar';
+    import PTrack from './ptrack.riot';
+    import { shuffle } from './utils';
+
+    const PREVIEW_SPAN = 30000;
+    export default {
+      state: {
+        progress: null,
+        articles: [],
+        streams: new Map(),
+        current: null,
+        playlist: [],
+        nextTimeout: null,
+      },
+      components: {
+        PTrack
+      },
+      onBeforeMount(props, state) {
+        SC.initialize({ client_id: props.client_id });
+        state.articles = props.tracks;
+      },
+      onMounted(props, state) {
+        state.progress = new Nanobar();
+      },
+      onUpdated() {
+        console.log('updated');
+      },
+      onStreamReady(evt) {
+        const { uri, player, err } = evt.detail;
+        if (err) {
+          this.state.articles.delete(uri);
+        } else {
+          player.on('play-start', () => {
+            this.state.nextTimeout = setTimeout(() => this.play(), PREVIEW_SPAN);
+          });
+          player.on('time', (time) => {
+            const rel = time-this.state.current.cue;
+            const p = Math.floor((rel*100)/PREVIEW_SPAN);
+            this.state.progress.go(p);
+          });
+          this.state.streams.set(uri, player);
+        }
+        const p = Math.floor((this.state.streams.size*100)/this.state.articles.size);
+        this.state.progress.go(p);
+      },
+      play() {
+        this.pause();
+        // shuffle the playlist
+        if (this.state.playlist.length === 0) {
+          this.state.playlist = shuffle(Array.from(this.state.articles.keys()));
+        }
+        const uri = this.state.playlist.pop();
+        const stream = this.state.streams.get(uri);
+        const cue =  Math.floor(
+          Math.random()*(this.state.articles.get(uri).duration-PREVIEW_SPAN)
+        );
+        this.state.current = { uri, stream, cue };
+
+        // scroll to article
+        window.location.hash = uri;
+
+        stream.play();
+        stream.seek(cue);
+
+      },
+      pause() {
+        if (this.state.current) {
+          this.state.current.stream.pause();
+          clearTimeout(this.state.nextTiemout);
+          this.state.progress.go(100);
+        }
+      }
+    };
+  </script>
+</app>
