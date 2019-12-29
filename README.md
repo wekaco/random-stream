@@ -1,6 +1,8 @@
 # random-stream
 Random cue point/duration stream of audio curated material.
 
+Visit [Live (0.1.0 development)](https://wekaco.github.io/random-stream/index.html)
+
 ![2019 Cover](https://raw.githubusercontent.com/wekaco/random-stream/master/assets/images/2019-cover.jpg)
 
 ## Installation
