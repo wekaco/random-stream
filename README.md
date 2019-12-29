@@ -1,4 +1,5 @@
 # random-stream
+Random cue point/duration stream of audio curated material.
 
 ![2019 Cover](https://raw.githubusercontent.com/wekaco/random-stream/master/assets/images/2019-cover.jpg)
 
@@ -33,4 +34,4 @@ Serve static build files with:
 npm run serve
 ```
 
-![wekaco: About that life](asset/images/2019-cover.jpg)
+![wekaco: About that life](https://wekaco.github.io/)
