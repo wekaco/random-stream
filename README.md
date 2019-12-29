@@ -1,5 +1,7 @@
 # random-stream
 
+![2019 Cover](https://raw.githubusercontent.com/wekaco/random-stream/master/assets/images/2019-cover.jpg)
+
 ## Installation
 Use `npm` ( or `yarn` ) to:
 ```
