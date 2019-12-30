@@ -1,15 +1,18 @@
 <app>
   <header>
-    <partwork class="main" src={ state.cover }></partwork>
+    <partwork class="main" src={ state.cover } onpalette={ styleParent }></partwork>
     <h1>2019</h1>
   </header>
   <section>
-    <ptrack
+    <article
       each={ input in Array.from(state.articles.values()) }
-      id={ input.id }
-      input={ input }
-      onStreamReady={ onStreamReady } >
-    </ptrack> 
+      id={input.id}>
+        <partwork src={input.cover} onpalette={ styleParent }></partwork>
+        <ptrack
+          input={ input }
+          onStreamReady={ onStreamReady } >
+        </ptrack>
+    </article>
   </section>
   <footer>
       <control
@@ -43,15 +46,17 @@
       :host {
         --section-width: 80%;
       }
-      section {
+      section, header {
         margin: auto;
       }
     }
-
-    section {
+    section, header {
       width: var(--section-width);
     }
-    header {
+    section article, header {
+      padding-top: 1rem;
+    }
+    section, article, header {
       height: 100vh;
     }
     footer {
@@ -89,6 +94,7 @@
         current: null,
         playlist: [],
         nextTimeout: null,
+        rainbow: [],
       },
       components: {
         Control,
@@ -151,6 +157,8 @@
           clearTimeout(this.state.nextTimeout);
           this.state.progress.go(100);
         }
+      },
+      styleParent(e) {
       }
     };
   </script>

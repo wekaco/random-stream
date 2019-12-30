@@ -1,48 +1,10 @@
 <ptrack>
-  <article
-    id={ state.id }
-    class={ `${state.hide}` }>
-      <partwork src={ props.input.cover } ></partwork>
-      <h2>{ props.input.title }</h2>
-      <h3>{ props.input.username }</h3>
-      <ul>
-        <li each={ tag in props.input.tags}>{tag}</li>
-      </ul>
-  </article>
+  <h2>{ props.input.title }</h2>
+  <h3>{ props.input.username }</h3>
+  <ul>
+    <li each={ tag in props.input.tags}>{tag}</li>
+  </ul>
   <style>
-    :host {
-        --host-height: 50vh; 
-    }
-    /* For phone devices */
-    @media (min-width: 360px) {
-      :host {
-        --host-height: 100vh; 
-      }
-    }
-    /* For tablet devices */
-    @media (min-width: 720px) {
-      :host {
-      }
-    }
-
-    @media (min-width: 1024px) {
-      :host {
-        padding-top: 20vh;
-        --host-height: 100vh; 
-      }
-    }
-    :host article {
-      display: block;
-      height: var(--host-height);
-    }
-    article  {
-    }
-    article h2 {
-      margin-top: 0;
-    }
-    article.hide {
-      display: none;
-    }
   </style>
   <script>
     import PArtwork from './partwork.riot';

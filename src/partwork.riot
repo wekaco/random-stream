@@ -1,5 +1,11 @@
-<partwork>
-  <figure style={ `background-image: url('${ props.src}')` }>
+<partwork style={ `background:${ state.background }` }>
+  <figure style={ `background-image: url('${ state.src }')` }>
+    <img
+      crossorigin="anonymous"
+      class="hide"
+      src={ state.src }
+      onload={ load }
+    />
   </figure>
   <style>
     :host {
@@ -36,21 +42,53 @@
         width: auto;
       }
     }
+    figure img {
+      opacity: 0;
+    }
     figure {
       display: flex;
       height: var(--figure-height);
       background-attachment: fixed;
       background-position: top;
       background-size: var(--figure-background-size);
+      margin:0;
+      padding: 1em 1.5em;
+    }
+    :host {
+      display: block;
+      padding: 1em 1.5em;
     }
   </style>
   <script>
+    import Colorthief from 'colorthief';
+    const color = new Colorthief();
+
+    import gradientjs from '@gradient-js/css';
+    const gradient = new gradientjs.Css(); 
+
     export default function PArtwork() {
       return {
-        state: {},
+        state: {
+          background: 'none'
+        },
         onBeforeMount(props, state) {
-          console.log(props, state);
-        }
+          state.src = props.src;
+        },
+        load(e) {
+          const palette = color
+            .getPalette(e.target)
+            .map( ([r,g,b,]) => `rgba(${r},${g},${b},1)`)
+            .slice(0,4);
+           const background = gradient.get(palette, {
+            useBezier: true,
+            samples: 24,
+            interpolation: 'hsl',
+            lightnessCorrection: true,
+            type: 'radial',
+            shape: 'circle'
+          });
+          this.update({ background });
+        },
       }
     };
   </script>
