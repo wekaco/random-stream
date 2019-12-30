@@ -1,6 +1,9 @@
 <app>
+  <header>
+    <partwork class="main" src={ state.cover }></partwork>
+    <h1>2019</h1>
+  </header>
   <section>
-    <partwork src={ state.cover }></partwork>
     <ptrack
       each={ input in Array.from(state.articles.values()) }
       id={ input.id }
@@ -48,9 +51,25 @@
     section {
       width: var(--section-width);
     }
+    header {
+      height: 100vh;
+    }
     footer {
       position: fixed;
       bottom: 0;
+      width: 100%;
+      background: white;
+    }
+    footer control {
+      display: inline-block;
+      width: 50%;
+    }
+    footer control button {
+      width: 100%;
+    }
+    footer .nanobar {
+      background: white;
+      border-top: 1px solid grey;
     }
   </style>
   <script>
@@ -81,7 +100,9 @@
         state.articles = props.tracks;
       },
       onMounted(props, state) {
-        state.progress = new Nanobar();
+        state.progress = new Nanobar({
+          target: this.root.querySelector('footer')
+        });
       },
       onUpdated() {
         console.log('updated');
