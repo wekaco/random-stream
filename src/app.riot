@@ -8,15 +8,15 @@
     </ptrack> 
   </section>
   <footer>
-      <button
+      <control
         name="play"
         onclick={ play }
         disabled={ state.disabled }>Play
-      </button>
-      <button
+      </control>
+      <control
         name="pause"
         onclick={ pause }>Stop
-      </button>
+      </control>
   </footer>
   <style>
     :host {
@@ -54,6 +54,7 @@
   </style>
   <script>
     import Nanobar from 'nanobar';
+    import Control from './control.riot';
     import PTrack from './ptrack.riot';
     import PArtwork from './partwork.riot';
     import { shuffle } from './utils';
@@ -70,6 +71,7 @@
         nextTimeout: null,
       },
       components: {
+        Control,
         PArtwork,
         PTrack,
       },

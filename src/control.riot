@@ -1,0 +1,62 @@
+<control>
+  <button name={ state.name }><slot/></button>
+  <style>
+  button {
+    padding: 1em;
+    vertical-align: middle;
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+    background: #c0c0c0;
+    border-top: 1px solid #fff;
+    border-left: 1px solid #fff;
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    position: relative;
+  }
+  button:after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid #dfdfdf;
+    border-left: 1px solid #dfdfdf;
+    border-right: 1px solid #808080;
+    border-bottom: 1px solid #808080;
+  }
+  button:not([disabled]):hover:active,
+  button.selected {
+    border-top: 1px solid #000;
+    border-left: 1px solid #000;
+    border-right: 1px solid #fff;
+    border-bottom: 1px solid #fff;
+  }
+  button:not([disabled]):hover:active:after,
+  button.selected:after {
+    border-top: 1px solid #808080;
+    border-left: 1px solid #808080;
+    border-right: 1px solid #dfdfdf;
+    border-bottom: 1px solid #dfdfdf;
+  }
+  button:before {
+    right: 0px;
+    top: -3px;
+  }
+  button:hover:active:before {
+    right: -1px;
+    top: -2px;
+  }
+  </style>
+  <script>
+      export default {
+        state: {
+          name: null
+        },
+        onBeforeMount(props, state) {
+          state.name = props.name;
+        }
+      };
+  </script>
+</control>
