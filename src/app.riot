@@ -1,9 +1,11 @@
 <app>
   <section>
+    <partwork src={ state.cover }></partwork>
     <ptrack
       each={ input in Array.from(state.articles.values()) }
       input={ input }
-      onStreamReady={ onStreamReady } ></ptrack> 
+      onStreamReady={ onStreamReady } >
+    </ptrack> 
   </section>
   <footer>
       <button
@@ -53,11 +55,13 @@
   <script>
     import Nanobar from 'nanobar';
     import PTrack from './ptrack.riot';
+    import PArtwork from './partwork.riot';
     import { shuffle } from './utils';
 
     const PREVIEW_SPAN = 30000;
     export default {
       state: {
+        cover: 'assets/images/2019-cover.jpg',
         progress: null,
         articles: [],
         streams: new Map(),
@@ -66,7 +70,8 @@
         nextTimeout: null,
       },
       components: {
-        PTrack
+        PArtwork,
+        PTrack,
       },
       onBeforeMount(props, state) {
         SC.initialize({ client_id: props.client_id });
