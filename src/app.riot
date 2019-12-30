@@ -3,6 +3,7 @@
     <partwork src={ state.cover }></partwork>
     <ptrack
       each={ input in Array.from(state.articles.values()) }
+      id={ input.id }
       input={ input }
       onStreamReady={ onStreamReady } >
     </ptrack> 
@@ -117,7 +118,7 @@
         this.state.current = { uri, stream, cue };
 
         // scroll to article
-        window.location.hash = uri;
+        window.location.hash = this.state.articles.get(uri).id;
 
         stream.play();
         stream.seek(cue);
@@ -126,7 +127,7 @@
       pause() {
         if (this.state.current) {
           this.state.current.stream.pause();
-          clearTimeout(this.state.nextTiemout);
+          clearTimeout(this.state.nextTimeout);
           this.state.progress.go(100);
         }
       }

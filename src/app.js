@@ -9,6 +9,7 @@ oReq.addEventListener('load', function load() {
     .filter( t => [ 520565400, 555134337 ].indexOf(parseInt(t.id)) === -1)
     //.map( t => { console.log(t); return t; })
     .map( t => ([ `tracks/${t.id}`, {
+      id: (new URL(t.permalink_url)).pathname,
       uri: `tracks/${t.id}`,
       title: t.title,
       username: t.user.username,
@@ -18,6 +19,7 @@ oReq.addEventListener('load', function load() {
         .filter(t=>t && t.trim().length>0),
       duration: t.duration,
     }]))
+    //.map( t => { console.log(t); return t; })
   )
 
   createApp(document.getElementById('root'), {
