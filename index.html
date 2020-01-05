@@ -5,19 +5,20 @@
     <!-- Basic Page Needs
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <meta charset="utf-8">
-    <title></title>
+    <title>2019</title>
 
-    <meta property="og:url"                content="" />
-    <meta property="og:type"               content="" />
-    <meta property="og:title"              content="" />
-    <meta property="og:description"        content="" />
-    <meta property="og:image"              content="" />
+    <link rel="image_src" href="assets/images/2019-cover.jpg" type="image/jpeg">
+    <meta name="og:url"                content="" />
+    <meta name="og:type"               content="" />
+    <meta name="og:title"              content="" />
+    <meta name="og:description"        content="" />
+    <meta name="og:image"              content="" />
     <meta http-equiv="content-type"        content="" />
     
     <meta http-equiv="X-UA-Compatible" content="" />
 
-    <meta property="title"              content="" />
-    <meta property="description"        content="" />
+    <meta name="title"              content="" />
+    <meta name="description"        content="" />
     <!-- Mobile Specific Metas
     –––––––––––––––––––––––––––––––––––––––––––––––––– -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -64,5 +65,22 @@
   <body>
     <main id="root"></main>
     <script src="dist/app.js"></script>
+    <script>
+      (()=>{
+        const revisitHash = () => {
+          console.log('resize');
+          window.location.hash = window.location.hash;
+        };
+        window.addEventListener('resize', revisitHash);
+
+        const setCurrent = (e) => {
+          const { id, title } = e.detail;
+          window.location.hash = id;
+          document.title = title;
+        };
+        document.getElementById('root')
+          .addEventListener('current', setCurrent);
+      })();
+    </script>
   </body>
 </html>

@@ -8,39 +8,36 @@
     />
   </figure>
   <style>
-    :host {
-        --figure-height: 20vh;
-        --figure-background-size: 80%;
+   :host {
+      --figure-background-size: 100%;
     }
     /* For phone devices */
     @media (min-width: 360px) {
       :host {
-        --figure-height: 60vh;
-        --figure-background-size: 90%;
+        --figure-background-size: 80%;
       }
     }
     /* For tablet devices */
     @media (min-width: 720px) {
       :host {
-        --figure-width: 40%;
         --figure-background-size: 60%;
-        --figure-height: 80vh;
-      }
-      figure {
-        float: left;
-        width: var(--figure-width);
       }
     }
 
-    @media (min-width: 1024px) {
+    @media (min-width: 960px) {
+      :host {
+        --figure-background-size: 40%;
+      }
+    }
+    @media (min-width: 1280px) {
       :host {
         --figure-background-size: 20%;
-        --figure-height: 40vh;
       }
-      figure {
-        float: none;
-        width: auto;
-      }
+    }
+    :host {
+      --figure-height: 40vh;
+      display: block;
+      padding: 1em 1.5em;
     }
     figure img {
       opacity: 0;
@@ -53,10 +50,8 @@
       background-size: var(--figure-background-size);
       margin:0;
       padding: 1em 1.5em;
-    }
-    :host {
-      display: block;
-      padding: 1em 1.5em;
+      float: none;
+      width: auto;
     }
   </style>
   <script>

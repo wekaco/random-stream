@@ -28,8 +28,9 @@
   <style>
     :host {
       --section-width: 100%;
-       overflow: hidden;
-       height: 100vh;
+      --padding-top: 0;
+      overflow: hidden;
+      height: 100vh;
     }
     @media (min-width: 360px) {
       :host {
@@ -45,6 +46,7 @@
     @media (min-width: 1024px) {
       :host {
         --section-width: 80%;
+        --padding-top: 1rem;
       }
       section, header {
         margin: auto;
@@ -54,7 +56,7 @@
       width: var(--section-width);
     }
     section article, header {
-      padding-top: 1rem;
+      padding-top: var(--padding-top);
     }
     section, article, header {
       height: 100vh;
@@ -144,12 +146,12 @@
         );
         this.state.current = { uri, stream, cue };
 
-        // scroll to article
-        window.location.hash = this.state.articles.get(uri).id;
-
         stream.play();
         stream.seek(cue);
 
+        // scroll to article
+        const detail = this.state.articles.get(uri);
+        this.root.dispatchEvent(new CustomEvent('current', { detail }));
       },
       pause() {
         if (this.state.current) {

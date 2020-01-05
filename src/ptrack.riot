@@ -1,10 +1,21 @@
 <ptrack>
   <h2>{ props.input.title }</h2>
-  <h3>{ props.input.username }</h3>
+  <p>{ props.input.username }</p>
   <ul>
     <li each={ tag in props.input.tags}>{tag}</li>
   </ul>
   <style>
+    :host {
+      padding-left: 1rem;
+      padding-right: 1rem;
+      display: block;
+    }
+    @media (min-width: 1024px) {
+      :host {
+        padding-left: 0;
+        padding-right: 0;
+      }
+    }
   </style>
   <script>
     import PArtwork from './partwork.riot';
