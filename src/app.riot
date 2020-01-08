@@ -29,11 +29,12 @@
       <control
         name="play"
         onclick={ play }
-        disabled={ state.disabled }>Play
+        disabled={ state.disabled  }>Play
       </control>
       <control
         name="pause"
-        onclick={ pause }>Stop
+        onclick={ pause }
+        disabled={ state.disabled }>Stop
       </control>
   </footer>
   <style>
@@ -136,6 +137,7 @@
         playlist: [],
         nextTimeout: null,
         safari: false,
+        disabled: true,
       },
       components: {
         Control,
@@ -166,6 +168,9 @@
             this.state.progress.go(p);
           });
           this.state.streams.set(uri, player);
+        }
+        if (this.state.streams.size === this.state.articles.size) {
+          this.update({ disabled: false });
         }
         const p = Math.floor((this.state.streams.size*100)/this.state.articles.size);
         this.state.progress.go(p);

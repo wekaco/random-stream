@@ -1,5 +1,8 @@
 <control>
-  <button name={ state.name }><slot/></button>
+  <button
+    name={ state.name }
+    disabled={ state.disabled ? 'disabled' : ''}
+  ><slot/></button>
   <style>
   button {
     padding: 1em;
@@ -50,12 +53,21 @@
   }
   </style>
   <script>
+      const disableCast = b => b ? 'disabled' : '';
       export default {
         state: {
-          name: null
+          name: null,
+          disabled: disableCast(false),
         },
         onBeforeMount(props, state) {
           state.name = props.name;
+          state.disabled = disableCast(props.disabled);
+        },
+        onUpdated(props, state) {
+          if (!props.disabled) {
+            this.root.querySelector('button').removeAttribute('disabled');
+          }
+          state.disabled = disableCast(props.disabled);
         }
       };
   </script>
