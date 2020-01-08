@@ -154,6 +154,14 @@
           target: this.root.querySelector('footer')
         });
       },
+      updateProgress(n) { //n is float
+        const c = this.state.progress.p;
+        const p = Math.floor(n*100);
+        if (p > 0  && p !== c) {
+          this.state.progress.p = p;
+          this.state.progress.go(p);
+        }
+      },
       onStreamReady(evt) {
         const { uri, player, err } = evt.detail;
         if (err) {
@@ -164,18 +172,14 @@
           });
           player.on('time', (time) => {
             const rel = time-this.state.current.cue;
-            const p = Math.floor((rel*100)/span);
-            if (p>0) {
-              this.state.progress.go(p);
-            }
+            this.updateProgress(rel/span);
           });
           this.state.streams.set(uri, player);
         }
         if (this.state.streams.size === this.state.articles.size) {
           this.update({ disabled: false });
         }
-        const p = Math.floor((this.state.streams.size*100)/this.state.articles.size);
-        this.state.progress.go(p);
+        this.updateProgress(this.state.streams.size/this.state.articles.size);
       },
       play() {
         this.pause();
@@ -202,7 +206,8 @@
         if (this.state.current) {
           this.state.current.stream.pause();
           clearTimeout(this.state.nextTimeout);
-          this.state.progress.go(100);
+
+          this.updateProgress(1);
         }
       },
     };
