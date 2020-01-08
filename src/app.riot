@@ -125,7 +125,7 @@
     import PArtwork from './partwork.riot';
     import { shuffle } from './utils';
 
-    const PREVIEW_SPAN = 30000;
+    const PREVIEW_SPAN = 15000;
     let span = PREVIEW_SPAN;
     export default {
       state: {
@@ -164,8 +164,10 @@
           });
           player.on('time', (time) => {
             const rel = time-this.state.current.cue;
-            const p = Math.floor((rel*100)/PREVIEW_SPAN);
-            this.state.progress.go(p);
+            const p = Math.floor((rel*100)/span);
+            if (p>0) {
+              this.state.progress.go(p);
+            }
           });
           this.state.streams.set(uri, player);
         }
