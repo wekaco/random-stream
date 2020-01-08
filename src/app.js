@@ -10,6 +10,7 @@ oReq.addEventListener('load', function load() {
     //.map( t => { console.log(t); return t; })
     .map( t => ([ `tracks/${t.id}`, {
       id: (new URL(t.permalink_url)).pathname,
+      url: t.permalink_url,
       uri: `tracks/${t.id}`,
       title: t.title,
       username: t.user.username,

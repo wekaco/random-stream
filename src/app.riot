@@ -2,6 +2,13 @@
   <header>
     <partwork class="main" src={ state.cover } onpalette={ styleParent }></partwork>
     <h1>2019</h1>
+    <p>Random cue point/duration stream of audio curated material.</p>
+    <ul>
+      <li>Press "Play" to start streaming or move to next.</li>
+      <li>Press "Stop" to stop streaming.</li>
+    </ul>
+    <p>All audio content is streamed directly from Soundcloud, where tracking behavior may be applied.</p>
+    <p class="small">Source code available on <a href="https://github.com/wekaco/random-stream">github.com/wekaco</a></p>
   </header>
   <section>
     <article
@@ -52,6 +59,14 @@
         margin: auto;
       }
     }
+    header h1 {
+      margin-bottom: 0.1rem;
+      padding-left: 1rem;
+    }
+    header p {
+      margin-top: 0;
+      padding-left: 1rem;
+    }
     section, header {
       width: var(--section-width);
     }
@@ -78,6 +93,13 @@
       background: white;
       border-top: 1px solid grey;
     }
+    .small { 
+      font-size: 0.8rem;
+      padding-right: 1.5rem;
+    }
+    .right {
+      float: right;
+    }
   </style>
   <script>
     import Nanobar from 'nanobar';
@@ -87,6 +109,7 @@
     import { shuffle } from './utils';
 
     const PREVIEW_SPAN = 30000;
+    let span = PREVIEW_SPAN;
     export default {
       state: {
         cover: 'assets/images/2019-cover.jpg',
@@ -121,7 +144,7 @@
           this.state.articles.delete(uri);
         } else {
           player.on('play-start', () => {
-            this.state.nextTimeout = setTimeout(() => this.play(), PREVIEW_SPAN);
+            this.state.nextTimeout = setTimeout(() => this.play(), span);
           });
           player.on('time', (time) => {
             const rel = time-this.state.current.cue;
@@ -141,8 +164,9 @@
         }
         const uri = this.state.playlist.pop();
         const stream = this.state.streams.get(uri);
+        span = PREVIEW_SPAN + Math.floor(Math.random()*PREVIEW_SPAN);
         const cue =  Math.floor(
-          Math.random()*(this.state.articles.get(uri).duration-PREVIEW_SPAN)
+          Math.random()*(this.state.articles.get(uri).duration-span)
         );
         this.state.current = { uri, stream, cue };
 

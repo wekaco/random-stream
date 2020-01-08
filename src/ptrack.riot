@@ -2,8 +2,9 @@
   <h2>{ props.input.title }</h2>
   <p>{ props.input.username }</p>
   <ul>
-    <li each={ tag in props.input.tags}>{tag}</li>
+    <li each={ tag in props.input.tags}>#{tag.trim()}</li>
   </ul>
+  <p class="small">Listen track of total duration { state.duration_slang }&nbsp;<a href={ props.input.url}>here</a>.</p>
   <style>
     :host {
       padding-left: 1rem;
@@ -15,6 +16,19 @@
         padding-left: 0;
         padding-right: 0;
       }
+    }
+    h2 {
+      margin-bottom: 0.1rem;
+    }
+    p {
+      margin-top: 0;
+    }
+    ul {
+      list-style-type: none;
+      padding-left: 0.5rem;
+    }
+    ul li {
+      font-size: 0.8rem;
     }
   </style>
   <script>
@@ -28,9 +42,13 @@
       state: {
         uri: null, 
         hide: 'hide',
+        duration_slang: '00:00',
       },
       onBeforeMount(props, state) {
         state.uri = props.input.uri;
+        let [_, f] = RegExp('T(.*)\.[0-9]{3}').exec(
+          (new Date(1000*Math.round(props.input.duration/1000))).toISOString());
+        state.duration_slang = f;
 
         const onStreamReady = props.onStreamReady || noop;
         this.root.addEventListener(SC_STREAM, onStreamReady);
