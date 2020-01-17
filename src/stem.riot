@@ -1,0 +1,39 @@
+<stem>
+  <label>{ props.uri }</label>
+  <script>
+    import noop from './noop';
+    const STEM_LOAD = 'stem.load';
+    const STEM_ERROR = 'stem.error';
+
+    export default {
+      state: {
+        request: null
+      },
+      onBeforeMount(props, state) {
+        const load = props.load || noop;
+        const error = props.error || noop;
+        this.root.addEventListener(STEM_LOAD, load);
+        this.root.addEventListener(STEM_ERROR, error);
+
+        const request = new XMLHttpRequest();
+        request.open('GET', props.uri, true);
+        request.responseType = 'arraybuffer';
+
+        request.onload = () => {
+          props.ctx.decodeAudioData(request.response, (buffer) => {
+            const detail = { uri: props.uri, buffer };
+            this.root
+              .dispatchEvent(new CustomEvent(STEM_LOAD, { detail }));
+          },
+          (err) => {
+            this.root
+              .dispatchEvent(new CustomEvent(STEM_ERROR, { detail: err }));
+          });
+        }
+        
+        request.send();
+        state.request = request;
+      }
+    };
+  </script>
+</stem>

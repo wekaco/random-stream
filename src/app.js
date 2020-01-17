@@ -5,28 +5,10 @@ const createApp = component(App);
 
 const oReq = new XMLHttpRequest();
 oReq.addEventListener('load', function load() {
-  const tracks = new Map( JSON.parse(this.responseText)
-    .filter( t => [ 520565400, 555134337 ].indexOf(parseInt(t.id)) === -1)
-    //.map( t => { console.log(t); return t; })
-    .map( t => ([ `tracks/${t.id}`, {
-      id: (new URL(t.permalink_url)).pathname,
-      url: t.permalink_url,
-      uri: `tracks/${t.id}`,
-      title: t.title,
-      username: t.user.username,
-      cover: t.artwork_url.replace('large', 't500x500'),
-      tags: [ t.genre ]
-        .concat(t.tag_list.split('\"'))
-        .filter(t=>t && t.trim().length>0),
-      duration: t.duration,
-    }]))
-    //.map( t => { console.log(t); return t; })
-  )
-
+  const { master } = JSON.parse(this.responseText);
   createApp(document.getElementById('root'), {
-    client_id: 'a9d29aaf9a0cc170e7ee6ab980a6ad49',
-    tracks,
+    master: `data/${master}`,
   });
 });
-oReq.open('GET', 'data/2019-playlist.json');
+oReq.open('GET', 'data/PALLADOS05/manifest.json');
 oReq.send();

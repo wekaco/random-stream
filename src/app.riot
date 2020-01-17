@@ -1,30 +1,12 @@
 <app>
-  <div if={ state.safari } class="warning small">
-    <p>Other users faced degraded functionality with Safari browser.</p>
-    <p>Please Use Firefox, Chrome, Opera or other browser.</p>
-  </div>
-  <header>
-    <partwork class="main" src={ state.cover } onpalette={ styleParent }></partwork>
-    <h1>2019</h1>
-    <p>Random cue point/duration stream of audio curated material.</p>
-    <ul>
-      <li>Press "Play" to start streaming or move to next.</li>
-      <li>Press "Stop" to stop streaming.</li>
-    </ul>
-    <p>All audio content is streamed directly from Soundcloud, where tracking behavior may be applied.</p>
-    <p class="small">Source code available on <a href="https://github.com/wekaco/random-stream">github.com/wekaco</a></p>
-  </header>
-  <section>
-    <article
-      each={ input in Array.from(state.articles.values()) }
-      id={input.id}>
-        <partwork src={input.cover} onpalette={ styleParent }></partwork>
-        <ptrack
-          input={ input }
-          onStreamReady={ onStreamReady } >
-        </ptrack>
-    </article>
-  </section>
+  <article>
+    <stem
+      uri={ props.master }
+      ctx={ state.ctx }
+      load={ onStemLoad }
+      error={ onStemError }
+    ></stems>
+  </article>
   <footer>
       <control
         name="play"
@@ -37,179 +19,80 @@
         disabled={ state.disabled }>Stop
       </control>
   </footer>
-  <style>
-    :host {
-      --section-width: 100%;
-      --padding-top: 0;
-      overflow: hidden;
-      height: 100vh;
-    }
-    @media (min-width: 360px) {
-      :host {
-        --section-width: 100%;
-      }
-    }
-    /* For tablet devices */
-    @media (min-width: 720px) {
-      :host {
-      }
-    }
-
-    @media (min-width: 1024px) {
-      :host {
-        --section-width: 80%;
-        --padding-top: 1rem;
-      }
-      section, header {
-        margin: auto;
-      }
-    }
-    header h1 {
-      margin-bottom: 0.1rem;
-      padding-left: 1rem;
-    }
-    header p {
-      margin-top: 0;
-      padding-left: 1rem;
-    }
-    section, header {
-      width: var(--section-width);
-    }
-    section article, header {
-      padding-top: var(--padding-top);
-    }
-    section, article, header {
-      height: 100vh;
-    }
-    footer {
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-      background: white;
-    }
-    footer control {
-      display: inline-block;
-      width: 50%;
-    }
-    footer control button {
-      width: 100%;
-    }
-    footer .nanobar {
-      background: white;
-      border-top: 1px solid grey;
-    }
-    .small { 
-      font-size: 0.8rem;
-      padding-right: 1.5rem;
-    }
-    .right {
-      float: right;
-    }
-    .warning {
-      position: absolute;
-      top:0;
-      padding: 1rem;
-      color: #856404;
-      background-color: #fff3cd;
-      border-color: #ffeeba;
-      width: 100%;
-    }
-    .warning p {
-      margin: 0;
-    }
-  </style>
   <script>
-    import Nanobar from 'nanobar';
     import Control from './control.riot';
-    import PTrack from './ptrack.riot';
-    import PArtwork from './partwork.riot';
-    import { shuffle } from './utils';
+    import Stem from './stem.riot';
+    import noop from './noop';
 
-    const PREVIEW_SPAN = 15000;
-    let span = PREVIEW_SPAN;
+    const CTX_ERROR = 'ctx.error';
+
+    const bin = [];
+
     export default {
       state: {
-        cover: 'assets/images/2019-cover.jpg',
-        progress: null,
-        articles: [],
-        streams: new Map(),
-        current: null,
-        playlist: [],
-        nextTimeout: null,
-        safari: false,
         disabled: true,
+        ctx: new (window.AudioContext || window.webkitAudioContext)(),
+        buffer: null,
+        master: null,
       },
       components: {
         Control,
-        PArtwork,
-        PTrack,
+        Stem,
       },
       onBeforeMount(props, state) {
-        state.safari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        SC.initialize({ client_id: props.client_id });
-        state.articles = props.tracks;
       },
-      onMounted(props, state) {
-        state.progress = new Nanobar({
-          target: this.root.querySelector('footer')
-        });
+      onStemLoad(e) {
+        const { uri, buffer } = e.detail;
+        this.state.buffer = buffer;
+        this.update({ disabled: false });
       },
-      updateProgress(n) { //n is float
-        const c = this.state.progress.p;
-        const p = Math.floor(n*100);
-        if (p > 0  && p !== c) {
-          this.state.progress.p = p;
-          this.state.progress.go(p);
-        }
+      onStemError(e) {
       },
-      onStreamReady(evt) {
-        const { uri, player, err } = evt.detail;
-        if (err) {
-          this.state.articles.delete(uri);
-        } else {
-          player.on('play-start', () => {
-            this.state.nextTimeout = setTimeout(() => this.play(), span);
-          });
-          player.on('time', (time) => {
-            const rel = time-this.state.current.cue;
-            this.updateProgress(rel/span);
-          });
-          this.state.streams.set(uri, player);
+      onBeforeMount(props, state) {
+      },
+      ctx(cb) {
+        cb = cb || noop;
+        const{ ctx } = this.state;
+        // If closed already resume with reject promise
+        // or else it is suspended and expected to resume
+        if (ctx.state === 'running') {
+          // Web/API/AudioContext.resume
+          return cb(null, ctx);
         }
-        if (this.state.streams.size === this.state.articles.size) {
-          this.update({ disabled: false });
-        }
-        this.updateProgress(this.state.streams.size/this.state.articles.size);
+        ctx.resume()
+          .then(()=>cb(null, ctx))
+          .catch(cb);
       },
       play() {
-        this.pause();
-        // shuffle the playlist
-        if (this.state.playlist.length === 0) {
-          this.state.playlist = shuffle(Array.from(this.state.articles.keys()));
-        }
-        const uri = this.state.playlist.pop();
-        const stream = this.state.streams.get(uri);
-        span = PREVIEW_SPAN + Math.floor(Math.random()*PREVIEW_SPAN);
-        const cue =  Math.floor(
-          Math.random()*(this.state.articles.get(uri).duration-span)
-        );
-        this.state.current = { uri, stream, cue };
+        this.ctx((err, ctx) => {
+          if (err) {
+            this.root
+              .dispatchEvent(new CustomEvent(CTX_ERROR, { detail: err }));
+            return;
+          }
+          if (this.state.master === null) {
+            this.state.master = this.state.ctx.createGain();
+            this.state.master.connect(this.state.ctx.destination);
+          }
 
-        stream.play();
-        stream.seek(cue);
+          const source = this.state.ctx.createBufferSource();
+          source.loop = true;
+          source.buffer = this.state.buffer;
+          source.connect(this.state.master);
+          source.start(0);
 
-        // scroll to article
-        const detail = this.state.articles.get(uri);
-        this.root.dispatchEvent(new CustomEvent('current', { detail }));
+          this.pause();
+          this.state.current = source;
+        });
       },
       pause() {
         if (this.state.current) {
-          this.state.current.stream.pause();
-          clearTimeout(this.state.nextTimeout);
-
-          this.updateProgress(1);
+          const { current } = this.state;
+          current.stop();
+          //bin.push(current);
         }
-      },
+        this.state.current = null;
+      }
     };
   </script>
 </app>
