@@ -19,29 +19,13 @@
   </table>
   <button onclick={ reset }>Reset</button>
   <script>
-    class DbMeterInfo {
-      constructor(value) {
-        this.value = value;
-      }
-      set value(value) {
-        this._value = this.max = DbMeterInfo.finite(value);
-      }
-      nu(value) {
-        const n = new DbMeterInfo(value) 
-        n.max = this.max;
-        return n;
+    class MeterInfo {
+      constructor(value, max) {
+        this.value = this.max = MeterInfo.finite(value);
+        this.max = Math.max(this.max, MeterInfo.finite(max));
       }
       reset() {
-        this._max = this.value;
-      }
-      get value() {
-        return this._value || -100;
-      }
-      get max() {
-        return this._max || -100;
-      }
-      set max(value) {
-        this._max = Math.max(value, this.max);
+        this.max = this.value;
       }
       static finite(v) {
         return isFinite(v) ? v : -100;
@@ -55,9 +39,10 @@
     };
     export default {
       state: {
-        avg: new DbMeterInfo(-100),
-        peak: new DbMeterInfo(-100),
+        avg: new MeterInfo(-100, -100),
+        peak: new MeterInfo(-100, -100),
         analyser: null,
+        frame: null,
       },
       onBeforeMount(props, state) {
         state.analyser = props.ctx.createAnalyser();
@@ -68,6 +53,11 @@
       },
       onMounted(props, state) {
         this.loop();
+      },
+      onUnMounted(props, state) {
+        if (state.frame) {
+          window.cancelAnimationFrame(state.frame);
+        }
       },
       loop() {
         const { analyser } = this.state;
@@ -87,10 +77,10 @@
           const peak = 10 * Math.log10(peakInstantaneousPower);
 
           this.update({
-            avg: this.state.avg.nu(avg),
-            peak: this.state.peak.nu(peak),
+            avg: new MeterInfo(avg, this.state.avg.max),
+            peak: new MeterInfo(peak, this.state.peak.max),
           });
-          window.requestAnimationFrame(this.loop.bind(this));
+          this.state.frame = window.requestAnimationFrame(this.loop.bind(this));
         })();
       },
       reset() {
