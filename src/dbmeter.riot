@@ -1,0 +1,102 @@
+<dbmeter>
+  <meter
+    min="-100"
+    low="-6"
+    optimum="0"
+    max="10"
+    value={ state.avg.value}></meter>
+  <meter
+    min="-100"
+    low="-6"
+    optimum="0"
+    max="10"
+    value={ state.peak.value}></meter>
+  <table>
+    <tbody>
+      <tr><td>RMS</td><td>{ state.avg.max.toFixed(2) } db</td></tr>
+      <tr><td>PEAK</td><td>{ state.peak.max.toFixed(2) } db</td></tr>
+    </tbody>
+  </table>
+  <button onclick={ reset }>Reset</button>
+  <script>
+    class DbMeterInfo {
+      constructor(value) {
+        this.value = value;
+      }
+      set value(value) {
+        this._value = this.max = DbMeterInfo.finite(value);
+      }
+      nu(value) {
+        const n = new DbMeterInfo(value) 
+        n.max = this.max;
+        return n;
+      }
+      reset() {
+        this._max = this.value;
+      }
+      get value() {
+        return this._value || -100;
+      }
+      get max() {
+        return this._max || -100;
+      }
+      set max(value) {
+        this._max = Math.max(value, this.max);
+      }
+      static finite(v) {
+        return isFinite(v) ? v : -100;
+      }
+    };
+    function uint2float32(byteBuffer) {
+      return byteBuffer.reduce((float, byte, i) => {
+        float[i] = (byte - 128) / 128.0;
+        return float;
+      }, new Float32Array(byteBuffer.length));
+    };
+    export default {
+      state: {
+        avg: new DbMeterInfo(-100),
+        peak: new DbMeterInfo(-100),
+        analyser: null,
+      },
+      onBeforeMount(props, state) {
+        state.analyser = props.ctx.createAnalyser();
+        state.analyser.fftSize = props.fftSize || 2048;
+
+        props.in.connect(state.analyser);
+        state.analyser.connect(props.out);
+      },
+      onMounted(props, state) {
+        this.loop();
+      },
+      loop() {
+        const { analyser } = this.state;
+        ((timestamp) => {
+          const byteBuffer = new Uint8Array(analyser.fftSize);
+          analyser.getByteTimeDomainData(byteBuffer);
+
+          const floatBuffer = uint2float32(byteBuffer);
+          
+          // Compute average power over the interval.
+          const [ sumOfSquares, peakInstantaneousPower ] = floatBuffer
+            .reduce(([ sum, peak ], buffer) => {
+              const power = buffer ** 2;
+              return [ sum += power, Math.max(power, peak) ];
+            }, [ 0, 0 ]);
+          const avg = 10 * Math.log10(sumOfSquares / floatBuffer.length);
+          const peak = 10 * Math.log10(peakInstantaneousPower);
+
+          this.update({
+            avg: this.state.avg.nu(avg),
+            peak: this.state.peak.nu(peak),
+          });
+          window.requestAnimationFrame(this.loop.bind(this));
+        })();
+      },
+      reset() {
+        this.state.avg.reset();
+        this.state.peak.reset();
+      }
+    };
+  </script>
+</dbmeter>

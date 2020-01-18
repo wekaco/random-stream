@@ -8,14 +8,12 @@
     ></stems>
   </article>
   <footer>
-      <div onclick={ reset(state.avg) }>
-        <meter min="-100" low="-6" optimum="0" max="10" value={ state.avg.value}></meter>
-        <label for="avg-max">RMS</label><code>{ state.avg.max.toFixed(2) }</code> db
-      </div>
-      <div onclick={ reset(state.peak) }>
-        <meter min="-100" low="-6" optimum="0" max="10" value={ state.peak.value }></meter>
-        <label for="avg-max">PEAK</label><code>{ state.peak.max.toFixed(2) }</code> db
-      </div>
+    <dbmeter
+      ctx={ state.ctx }
+      fftSize=2048
+      in={ state.master }
+      out={ state.ctx.destination } >
+    </dbmeter>
       <control
         name="play"
         onclick={ play }
@@ -28,74 +26,36 @@
       </control>
     </footer>
     <style>
-        meter {
-          -webkit-transform: rotate(270deg);
-          -moz-transform: rotate(270deg);
-          -o-transform: rotate(270deg);
-          transform: rotate(270deg);
-        }
     </style>
   <script>
     import Control from './control.riot';
+    import Dbmeter from './dbmeter.riot';
     import Stem from './stem.riot';
     import noop from './noop';
 
     const CTX_ERROR = 'ctx.error';
 
-    const bin = [];
-    class DbMeterInfo {
-      constructor(value) {
-        this.value = value;
-      }
-      set value(value) {
-        this._value = this.max = DbMeterInfo.finite(value);
-      }
-      nu(value) {
-        const n = new DbMeterInfo(value) 
-        n.max = this.max;
-        return n;
-      }
-      reset() {
-        this._max = this.value;
-      }
-      get value() {
-        return this._value || -100;
-      }
-      get max() {
-        return this._max || -100;
-      }
-      set max(value) {
-        this._max = Math.max(value, this.max);
-      }
-      static finite(v) {
-        return isFinite(v) ? v : -100;
-      }
-    }
     export default {
       state: {
         disabled: true,
         ctx: new (window.AudioContext || window.webkitAudioContext)(),
         buffer: null,
-        master: null,
-        analyser: null,
-        avg: new DbMeterInfo(),
-        peak: new DbMeterInfo(),
+        master: null
       },
       components: {
         Control,
         Stem,
+        Dbmeter,
       },
       onBeforeMount(props, state) {
+        state.master = state.ctx.createGain();
       },
       onStemLoad(e) {
         const { uri, buffer } = e.detail;
         this.state.buffer = buffer;
         this.update({ disabled: false });
       },
-      onStemError(e) {
-      },
-      onBeforeMount(props, state) {
-      },
+      onStemError(e) {},
       ctx(cb) {
         cb = cb || noop;
         const{ ctx } = this.state;
@@ -116,56 +76,6 @@
               .dispatchEvent(new CustomEvent(CTX_ERROR, { detail: err }));
             return;
           }
-          this.state.analyser = this.state.ctx.createAnalyser();
-          this.state.analyser.fftSize = 2048;
-          function loop(analyser, cb) {
-            return (timestamp) => {
-              const byteBuffer = new Uint8Array(analyser.fftSize);
-              analyser.getByteTimeDomainData(byteBuffer);
-
-              let floatBuffer = byteBuffer.reduce((float, byte, i) => {
-                float[i] = (byte - 128) / 128.0;
-                return float;
-              }, new Float32Array(byteBuffer.length));
-              // Compute average power over the interval.
-              let sumOfSquares = 0;
-              for (let i = 0; i < floatBuffer.length; i++) {
-                sumOfSquares += floatBuffer[i] ** 2;
-              }
-              const avgPowerDecibels = 10 * Math.log10(sumOfSquares / floatBuffer.length);
-
-              // Compute peak instantaneous power over the interval.
-              let peakInstantaneousPower = 0;
-              for (let i = 0; i < floatBuffer.length; i++) {
-                const power = floatBuffer[i] ** 2;
-                peakInstantaneousPower = Math.max(power, peakInstantaneousPower);
-              }
-              const peakInstantaneousPowerDecibels = 10 * Math.log10(peakInstantaneousPower);
-
-
-              window.requestAnimationFrame(loop(analyser, cb));
-              cb(null, { 
-                avgPowerDecibels: isFinite(avgPowerDecibels) ? avgPowerDecibels : -100,
-                peakInstantaneousPowerDecibels: isFinite(peakInstantaneousPowerDecibels) ? peakInstantaneousPowerDecibels : - 100,
-              });
-            };
-          }
-          window.requestAnimationFrame(loop(this.state.analyser, (err, db) => {
-            
-            const { avgPowerDecibels, peakInstantaneousPowerDecibels } = db;
-
-            this.update({
-              avg: this.state.avg.nu(avgPowerDecibels),
-              peak: this.state.peak.nu(peakInstantaneousPowerDecibels),
-            });
-          }));
-
-          if (this.state.master === null) {
-            this.state.master = this.state.ctx.createGain();
-            this.state.master.connect(this.state.analyser);
-          }
-          this.state.analyser.connect(this.state.ctx.destination);
-
           const source = this.state.ctx.createBufferSource();
           source.loop = true;
           source.buffer = this.state.buffer;
@@ -173,7 +83,6 @@
           source.start(0);
 
           this.pause();
-          this.reset([ this.state.avg, this.state.peak ]);
           this.state.current = source;
         });
       },
@@ -181,7 +90,6 @@
         if (this.state.current) {
           const { current } = this.state;
           current.stop();
-          //bin.push(current);
         }
         this.state.current = null;
       },
