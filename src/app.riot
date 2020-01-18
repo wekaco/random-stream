@@ -8,13 +8,13 @@
     ></stems>
   </article>
   <footer>
-      <div>
+      <div onclick={ reset(state.avg) }>
         <meter min="-100" low="-6" optimum="0" max="10" value={ state.avg.value}></meter>
-        <label for="avg-max">RMS</label><code>{ state.avg.value.toFixed(2) }</code> db
+        <label for="avg-max">RMS</label><code>{ state.avg.max.toFixed(2) }</code> db
       </div>
-      <div>
+      <div onclick={ reset(state.peak) }>
         <meter min="-100" low="-6" optimum="0" max="10" value={ state.peak.value }></meter>
-        <label for="avg-max">PEAK</label><code>{ state.peak.value.toFixed(2) }</code> db
+        <label for="avg-max">PEAK</label><code>{ state.peak.max.toFixed(2) }</code> db
       </div>
       <control
         name="play"
@@ -26,7 +26,15 @@
         onclick={ pause }
         disabled={ state.disabled }>Stop
       </control>
-  </footer>
+    </footer>
+    <style>
+        meter {
+          -webkit-transform: rotate(270deg);
+          -moz-transform: rotate(270deg);
+          -o-transform: rotate(270deg);
+          transform: rotate(270deg);
+        }
+    </style>
   <script>
     import Control from './control.riot';
     import Stem from './stem.riot';
@@ -35,7 +43,6 @@
     const CTX_ERROR = 'ctx.error';
 
     const bin = [];
-
     class DbMeterInfo {
       constructor(value) {
         this.value = value;
@@ -166,6 +173,7 @@
           source.start(0);
 
           this.pause();
+          this.reset([ this.state.avg, this.state.peak ]);
           this.state.current = source;
         });
       },
@@ -176,6 +184,14 @@
           //bin.push(current);
         }
         this.state.current = null;
+      },
+      reset(meters) {
+        return () => {
+          if (!(meters instanceof Array)) {
+            meters = [ meters ];
+          }
+          meters.forEach( meter => meter.reset());
+        };
       }
     };
   </script>
