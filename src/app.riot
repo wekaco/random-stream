@@ -92,14 +92,6 @@
           current.stop();
         }
         this.state.current = null;
-      },
-      reset(meters) {
-        return () => {
-          if (!(meters instanceof Array)) {
-            meters = [ meters ];
-          }
-          meters.forEach( meter => meter.reset());
-        };
       }
     };
   </script>

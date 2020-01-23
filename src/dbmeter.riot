@@ -1,11 +1,11 @@
 <dbmeter>
-  <table>
+  <table onclick={ reset }>
     <tbody>
       <tr each={ i in [
           { name: 'RMS', read: state.avg },
           { name: 'PEAK', read: state.peak }
         ]}>
-        <td>{ i.name }</td>
+        <th>{ i.name }</th>
         <td>
           <meter
             min="-100"
@@ -14,12 +14,41 @@
             max="10"
             value={ i.read.value }></meter>
         </td>
-        <td>{ i.read.max.toFixed(2) } db</td>
+        <td class="read">
+          <span class="max { (i.read.max > -1) ? `alert`: `` }">{ i.read.max.toFixed(2) }</span>
+          <span class="scale">{ i.read.scale }</span>
+        </td>
       </tr>
     </tbody>
   </table>
-  <button onclick={ reset }>Reset</button>
   <style>
+    @keyframes info {
+      50% {
+        background-color: #fed8b1;
+      }
+    }
+    td { 
+      padding-left: 2px;
+      text-align: left;
+    }
+    td > .max {
+      width: 2rem;
+      display: inline-block;
+      text-align: right;
+      padding-right: 2px;
+    }
+    td > .scale {
+      font-weight: bold;
+    }
+
+    .blink {
+      animation: info ease 0.4s 1;
+      /* use 400 as timeout to remove class */
+    }
+    .alert {
+      color: #fed8b1;
+      background-color: #b89aa5;
+    }
     :host table {
       margin-left: 1rem;
     }
@@ -35,6 +64,7 @@
       constructor(value, max) {
         this.value = this.max = MeterInfo.finite(value);
         this.max = Math.max(this.max, MeterInfo.finite(max));
+        this.scale = 'dB';
       }
       reset() {
         this.max = this.value;
@@ -65,6 +95,9 @@
       },
       onMounted(props, state) {
         this.loop();
+        this.root.addEventListener('dbmeter.reset', () => {
+          this.reset();
+        });
       },
       onUnMounted(props, state) {
         if (state.frame) {
@@ -96,6 +129,10 @@
         })();
       },
       reset() {
+        this.root.querySelectorAll('.max').forEach(r => {
+          r.classList.add('blink');
+          setTimeout(()=>r.classList.remove('blink'), 400);
+        });
         this.state.avg.reset();
         this.state.peak.reset();
       }
