@@ -1,10 +1,12 @@
 <app>
   <article>
     <stem
-      uri={ props.master }
+      each={ uri in props.stems }
+      uri={ uri }
       ctx={ state.ctx }
       load={ onStemLoad }
       error={ onStemError }
+      out={ state.master }
     ></stems>
   </article>
   <footer>
@@ -37,10 +39,12 @@
 
     export default {
       state: {
+        current: new Set(),
         disabled: true,
         ctx: new (window.AudioContext || window.webkitAudioContext)(),
         buffer: null,
-        master: null
+        master: null,
+        stems: [],
       },
       components: {
         Control,
@@ -51,8 +55,9 @@
         state.master = state.ctx.createGain();
       },
       onStemLoad(e) {
-        const { uri, buffer } = e.detail;
-        this.state.buffer = buffer;
+        const { id } = e.detail;
+        const stem = this.root.querySelector(`#${id}`);
+        stem.addEventListener('stem.play', () => this.state.current.add(stem), { once: true });
         this.update({ disabled: false });
       },
       onStemError(e) {},
@@ -76,22 +81,19 @@
               .dispatchEvent(new CustomEvent(CTX_ERROR, { detail: err }));
             return;
           }
-          const source = this.state.ctx.createBufferSource();
-          source.loop = true;
-          source.buffer = this.state.buffer;
-          source.connect(this.state.master);
-          source.start(0);
-
           this.pause();
-          this.state.current = source;
+          this.root.querySelectorAll('stem')
+            .forEach( s => s.dispatchEvent(
+              new CustomEvent('stem.cue', { detail: 0 })
+            ));
+
         });
       },
       pause() {
-        if (this.state.current) {
-          const { current } = this.state;
-          current.stop();
-        }
-        this.state.current = null;
+        for (let [ _, element ] of this.state.current.entries()) {
+          element.dispatchEvent(new CustomEvent('stem.stop'));
+        };
+        this.state.current.clear();
       }
     };
   </script>

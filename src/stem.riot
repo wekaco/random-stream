@@ -1,15 +1,27 @@
-<stem>
+<stem id={ state.id }>
   <label>{ props.uri }</label>
   <script>
     import noop from './noop';
     const STEM_LOAD = 'stem.load';
     const STEM_ERROR = 'stem.error';
+    const STEM_CUE = 'stem.cue';
+    const STEM_PLAY = 'stem.play';
+    const STEM_STOP = 'stem.stop';
 
     export default {
       state: {
-        request: null
+        id: null,
+        request: null,
+        buffer: null,
+        ctx: null,
+        source: null,
       },
       onBeforeMount(props, state) {
+        state.ctx = props.ctx;
+        state.out = props.out;
+
+        state.id = btoa(props.uri).replace(/=/gi, '');
+
         const load = props.load || noop;
         const error = props.error || noop;
         this.root.addEventListener(STEM_LOAD, load);
@@ -20,8 +32,22 @@
         request.responseType = 'arraybuffer';
 
         request.onload = () => {
-          props.ctx.decodeAudioData(request.response, (buffer) => {
-            const detail = { uri: props.uri, buffer };
+          state.ctx.decodeAudioData(request.response, (buffer) => {
+            state.buffer = buffer;
+            const detail = { id: state.id };
+            this.root
+              .addEventListener(STEM_CUE, (e) => {
+                const when = e.detail;
+                const source = state.ctx.createBufferSource();
+                source.loop = true;
+                source.buffer = state.buffer;
+                source.connect(state.out);
+                source.start(when);
+                this.root.addEventListener(STEM_STOP, () => source.stop(), { once: true }); 
+                this.root.dispatchEvent(
+                  new CustomEvent(STEM_PLAY, { detail })
+                );
+              });
             this.root
               .dispatchEvent(new CustomEvent(STEM_LOAD, { detail }));
           },
