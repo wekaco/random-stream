@@ -8,7 +8,7 @@
         <th>{ i.name }</th>
         <td>
           <meter
-            min="-100"
+            min={ props.default || -100 }
             low="-6"
             high="-1"
             max="10"
@@ -62,16 +62,16 @@
   </style>
   <script>
     class MeterInfo {
-      constructor(value, max) {
-        this.value = this.max = MeterInfo.finite(value);
-        this.max = Math.max(this.max, MeterInfo.finite(max));
+      constructor(value, max, dflt) {
+        this.value = this.max = MeterInfo.finite(value, dflt);
+        this.max = Math.max(this.max, MeterInfo.finite(max, dflt));
         this.scale = 'dB';
       }
       reset() {
         this.max = this.value;
       }
-      static finite(v) {
-        return isFinite(v) ? v : -100;
+      static finite(v, d) {
+        return v !== null && isFinite(v) ? v : (d || -100);
       }
     };
     function uint2float32(byteBuffer) {
@@ -82,12 +82,14 @@
     };
     export default {
       state: {
-        avg: new MeterInfo(-100, -100),
-        peak: new MeterInfo(-100, -100),
         analyser: null,
         frame: null,
+        avg: null,
+        peak: null,
       },
       onBeforeMount(props, state) {
+        state.avg  = new MeterInfo(null, null, props.default);
+        state.peak = new MeterInfo(null, null, props.default);
         state.analyser = props.ctx.createAnalyser();
         state.analyser.fftSize = props.fftSize || 2048;
 

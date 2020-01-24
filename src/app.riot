@@ -1,16 +1,21 @@
 <app>
-  <article>
+  <article each={ uri in props.stems }>
     <stem
-      each={ uri in props.stems }
       uri={ uri }
       ctx={ state.ctx }
       load={ onStemLoad }
       error={ onStemError }
-      out={ state.master }
-    ></stems>
+      out={ channel(uri) }></stems>
+    <dbmeter 
+      default=-42
+      ctx={ state.ctx }
+      fftSize=2048
+      in={ channel(uri) }
+      out={ state.master }></dbmeter>
   </article>
   <footer>
     <dbmeter
+      default=-42
       ctx={ state.ctx }
       fftSize=2048
       in={ state.master }
@@ -40,6 +45,7 @@
     export default {
       state: {
         current: new Set(),
+        channels: new Map(),
         disabled: true,
         ctx: new (window.AudioContext || window.webkitAudioContext)(),
         buffer: null,
@@ -94,6 +100,15 @@
           element.dispatchEvent(new CustomEvent('stem.stop'));
         };
         this.state.current.clear();
+      },
+      channel(uri) {
+        if (!this.state.channels.has(uri)) {
+          const gain = this.state.ctx.createGain();
+          gain.connect(this.state.master);
+          this.state.channels.set(uri, gain);
+        }
+        console.log('get', uri);
+        return this.state.channels.get(uri);
       }
     };
   </script>
