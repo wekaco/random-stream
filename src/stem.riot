@@ -1,7 +1,12 @@
 <stem id={ state.id }>
+  <loading if={ !state.loaded }></loading>
   <label>{ props.uri }</label>
+  <style>
+  </style>
   <script>
     import noop from './noop';
+    import Loading from './loading.riot';
+
     const STEM_LOAD = 'stem.load';
     const STEM_ERROR = 'stem.error';
     const STEM_CUE = 'stem.cue';
@@ -15,6 +20,10 @@
         buffer: null,
         ctx: null,
         source: null,
+        loaded: false,
+      },
+      components: {
+        Loading
       },
       onBeforeMount(props, state) {
         state.ctx = props.ctx;
@@ -50,6 +59,7 @@
               });
             this.root
               .dispatchEvent(new CustomEvent(STEM_LOAD, { detail }));
+            this.update({ loaded: true });
           },
           (err) => {
             this.root

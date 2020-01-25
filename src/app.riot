@@ -13,6 +13,7 @@
       in={ channel(uri) }
       out={ state.master }></dbmeter>
   </article>
+  <hr/>
   <footer>
     <dbmeter
       default=-42
@@ -21,19 +22,17 @@
       in={ state.master }
       out={ state.ctx.destination } >
     </dbmeter>
-      <control
-        name="play"
-        onclick={ play }
-        disabled={ state.disabled  }>Play
-      </control>
-      <control
-        name="pause"
-        onclick={ pause }
-        disabled={ state.disabled }>Stop
-      </control>
-    </footer>
-    <style>
-    </style>
+    <control
+      name="play"
+      onclick={ play }
+      disabled={ state.disabled  }>Play
+    </control>
+    <control
+      name="pause"
+      onclick={ pause }
+      disabled={ state.disabled }>Stop
+    </control>
+  </footer>
   <script>
     import Control from './control.riot';
     import Dbmeter from './dbmeter.riot';
