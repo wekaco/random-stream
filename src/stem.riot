@@ -41,6 +41,12 @@
         request.responseType = 'arraybuffer';
 
         request.onload = () => {
+          const supported = /audio/.test(request.getResponseHeader('content-type'));
+          if (!supported) {
+            const err = new Error(`Unsupported content-type: ${request.getResponseHeader('content-type')}`);
+            return this.root
+              .dispatchEvent(new CustomEvent(STEM_ERROR, { detail: err }));
+          }
           state.ctx.decodeAudioData(request.response, (buffer) => {
             state.buffer = buffer;
             const detail = { id: state.id };
@@ -52,7 +58,7 @@
                 source.buffer = state.buffer;
                 source.connect(state.out);
                 source.start(when);
-                this.root.addEventListener(STEM_STOP, () => source.stop(), { once: true }); 
+                this.root.addEventListener(STEM_STOP, () => source.stop(), { once: true });
                 this.root.dispatchEvent(
                   new CustomEvent(STEM_PLAY, { detail })
                 );
@@ -66,7 +72,7 @@
               .dispatchEvent(new CustomEvent(STEM_ERROR, { detail: err }));
           });
         }
-        
+
         request.send();
         state.request = request;
       }
